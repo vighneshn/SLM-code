@@ -19,6 +19,7 @@ import detect_heds_module_path
 from holoeye import slmdisplaysdk
 import numpy as np
 import csv
+import time
 
 datafile = open('file.csv', 'r')
 datareader = csv.reader(datafile, delimiter=';')
@@ -59,6 +60,7 @@ data = slmdisplaysdk.createFieldUChar(dataWidth, dataHeight)
 print("dataWidth = " + str(dataWidth))
 print("dataHeight = " + str(dataHeight))
 
+time_start = time.time()
 # Calculate the data:
 for y in range(dataHeight):
     for x in range(dataWidth):
@@ -66,6 +68,13 @@ for y in range(dataHeight):
 
 # Show data on SLM:
 error = slm.showData(data)
+time2 = time.time()
+print("TIME: ", time2-time_start)
+
+##Wait statements
+#time.sleep(5)
+input("Press Enter to continue...")
+
 assert error == ErrorCode.NoError, slm.errorString(error)
 
 # If your IDE terminates the python interpreter process after the script is finished, the SLM content
