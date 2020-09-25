@@ -14,8 +14,6 @@ new_width = camera.Width.GetValue() - camera.Width.GetInc()
 if new_width >= camera.Width.GetMin():
     camera.Width.SetValue(new_width)
 
-numberOfImagesToGrab = 200
-camera.StartGrabbingMax(numberOfImagesToGrab)
 
 datafile = open('file.csv', 'r')
 datareader = csv.reader(datafile, delimiter=';')
@@ -58,13 +56,17 @@ print("dataHeight = " + str(dataHeight))
 
 # Calculate the data:
 
+numberOfImagesToGrab = 200
+camera.StartGrabbingMax(numberOfImagesToGrab)
+time_start = time.time()
 while camera.IsGrabbing():
-    time_start = time.time()
+    error = slm.showData(data)
     grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
 
     if grabResult.GrabSucceeded():
         # Access the image data.
-        img = np.asarray(grabResult.Array).reshape((grabResult.Height, grabResult.Width))
+        img = np.asarray(grabResult.Array)#.reshape((grabResult.Height, grabResult.Width))
+        img[img<0.01] = 0
 
         ###ADDING FFT in Comment
         #img = np.fft.fftshift(np.fft.fft2(img))
@@ -74,7 +76,6 @@ while camera.IsGrabbing():
             for x in range(dataWidth):
                 data[y,x] = int(img[int(x/dataHeight*grabResult.Height), int(y/dataWidth*grabResult.Width)])
 
-    error = slm.showData(data)
     time2 = time.time()
     print("TIME: ", time2-time_start)
 
