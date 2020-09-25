@@ -14,7 +14,7 @@ new_width = camera.Width.GetValue() - camera.Width.GetInc()
 if new_width >= camera.Width.GetMin():
     camera.Width.SetValue(new_width)
 
-numberOfImagesToGrab = 100 
+numberOfImagesToGrab = 200
 camera.StartGrabbingMax(numberOfImagesToGrab)
 
 datafile = open('file.csv', 'r')
@@ -64,7 +64,12 @@ while camera.IsGrabbing():
 
     if grabResult.GrabSucceeded():
         # Access the image data.
-        img = np.asarray(grabResult.Array)
+        img = np.asarray(grabResult.Array).reshape((grabResult.Height, grabResult.Width))
+
+        ###ADDING FFT in Comment
+        #img = np.fft.fftshift(np.fft.fft2(img))
+
+        print(img.shape)
         for y in range(dataHeight):
             for x in range(dataWidth):
                 data[y,x] = int(img[int(x/dataHeight*grabResult.Height), int(y/dataWidth*grabResult.Width)])
@@ -73,6 +78,9 @@ while camera.IsGrabbing():
     time2 = time.time()
     print("TIME: ", time2-time_start)
 
+    ##Wait statements
+    #time.sleep(5)
+    #input("Press Enter to continue...")
 
     grabResult.Release()
 camera.Close()
@@ -81,9 +89,6 @@ camera.Close()
 
 # Show data on SLM:
 
-##Wait statements
-#time.sleep(5)
-input("Press Enter to continue...")
 
 assert error == ErrorCode.NoError, slm.errorString(error)
 
