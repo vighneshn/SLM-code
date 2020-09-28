@@ -21,6 +21,8 @@
     when explicitly released or when the smart pointer object is destroyed.
 */
 
+#include <ctime>
+
 // Include files to use the pylon API.
 #include <pylon/PylonIncludes.h>
 
@@ -41,7 +43,7 @@ using namespace Pylon;
 using namespace std;
 
 // Number of images to be grabbed.
-static const uint32_t c_countOfImagesToGrab = 160;
+static const uint32_t c_countOfImagesToGrab = 400;
 
 int main(int argc, char* argv[])
 {
@@ -67,16 +69,12 @@ int main(int argc, char* argv[])
         // The parameter MaxNumBuffer can be used to control the count of buffers
         // allocated for grabbing. The default value of this parameter is 10.
         
-        camera.MaxNumBuffer = 200;
+        camera.MaxNumBuffer = 500;
 
         cout << "Max buffers set" << endl;
      
         //trial code begins here
         
-        /*INodeMap& nodemap = camera.GetNodeMap();
-        // Set the upper limit of the camera's frame rate to 30 fps
-        CBooleanParameter(nodemap, "AcquisitionFrameRateEnable").SetValue(true);
-        CFloatParameter(nodemap, "AcquisitionFrameRate").SetValue(30.0); */
         camera.Open();
         camera.DeviceLinkThroughputLimitMode.SetValue("Off");
         
@@ -92,17 +90,10 @@ int main(int argc, char* argv[])
         camera.OffsetY.SetValue(our_offsety);
         cout << "Working with an image frame size of: " << our_width * our_height << " pixels" << endl;
 
-        // Determine the current exposure time
-        double d = camera.ExposureTimeAbs.GetValue();
-        // Set the exposure time in microseconds
-        camera.ExposureTimeAbs.SetValue(3500.0);
-        d = camera.ExposureTimeAbs.GetValue();
-        cout << "Exposure time is: " << d << " microseconds" << endl;
-
-        //camera.GetNodeMap();
+    
         camera.AcquisitionFrameRateEnable.SetValue(true);
         cout << "frame rate enabled" << endl;
-        camera.AcquisitionFrameRate.SetValue(170.0);
+        camera.AcquisitionFrameRate.SetValue(200.0);
         cout << "frame rate set" << endl;
         double rate = camera.ResultingFrameRate.GetValue();
         cout << "frame rate is:" << rate << endl;
@@ -112,7 +103,10 @@ int main(int argc, char* argv[])
 
        
         //trial code ends here
-        
+        time_t t1, t2;
+        time(&t1);
+        cout << t1 << endl;
+        int x = 0;
         // Start the grabbing of c_countOfImagesToGrab images.
         // The camera device is parameterized with a default configuration which
         // sets up free-running continuous acquisition.
@@ -135,13 +129,13 @@ int main(int argc, char* argv[])
                 // Access the image data.
                 //cout << "SizeX: " << ptrGrabResult->GetWidth() << endl;
                 //cout << "SizeY: " << ptrGrabResult->GetHeight() << endl;
-                const uint8_t* pImageBuffer = (uint8_t*)ptrGrabResult->GetBuffer();
+                //const uint8_t* pImageBuffer = (uint8_t*)ptrGrabResult->GetBuffer();
                 //cout << "Gray value of first pixel: " << (uint32_t)pImageBuffer[0] << endl << endl;
-                cout << ptrGrabResult->GetImageSize() << endl;
-                
+                //cout << ptrGrabResult->GetImageSize() << endl;
+                x++;
 #ifdef PYLON_WIN_BUILD
                 // Display the grabbed image.
-                Pylon::DisplayImage(1, ptrGrabResult);
+                //Pylon::DisplayImage(1, ptrGrabResult);
 #endif
             }
             else
@@ -149,7 +143,12 @@ int main(int argc, char* argv[])
                 cout << "Error: " << ptrGrabResult->GetErrorCode() << " " << ptrGrabResult->GetErrorDescription() << endl;
             }
         }
-
+        
+        time(&t2);
+        cout << t2 << endl;
+        cout << t2 - t1 << endl;
+        cout << x << endl;
+        cout << "frame rate is:" << rate << endl;
         camera.Close();
     }
     catch (const GenericException& e)
