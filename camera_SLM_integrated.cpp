@@ -60,6 +60,7 @@ using namespace holoeye;
 #    include <pylon/PylonGUI.h>
 #endif
 
+#define A 0.8
 using namespace Basler_UniversalCameraParams;
 
 
@@ -79,29 +80,18 @@ int main(int argc, char* argv[])
 
     // Before using any pylon methods, the pylon runtime must be initialized. 
     PylonInitialize();
-
     try
     {
         // Create an instant camera object with the camera device found first.
-
-       // CInstantCamera camera(CTlFactory::GetInstance().CreateFirstDevice());
-
+        // CInstantCamera camera(CTlFactory::GetInstance().CreateFirstDevice());
         CBaslerUniversalInstantCamera camera(CTlFactory::GetInstance().CreateFirstDevice());
-
         // Print the model name of the camera.
         cout << "Using device " << camera.GetDeviceInfo().GetModelName() << endl;
-
         cout << "Device initialized" << endl;
-
         // The parameter MaxNumBuffer can be used to control the count of buffers
         // allocated for grabbing. The default value of this parameter is 10.
-
         camera.MaxNumBuffer = 200;
-
-        cout << "Max buffers set" << endl;
-
         //trial code begins here
-
         /*INodeMap& nodemap = camera.GetNodeMap();
         // Set the upper limit of the camera's frame rate to 30 fps
         CBooleanParameter(nodemap, "AcquisitionFrameRateEnable").SetValue(true);
