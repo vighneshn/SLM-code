@@ -60,7 +60,6 @@ using namespace holoeye;
 #    include <pylon/PylonGUI.h>
 #endif
 
-#define A 0.8
 using namespace Basler_UniversalCameraParams;
 
 
@@ -80,18 +79,29 @@ int main(int argc, char* argv[])
 
     // Before using any pylon methods, the pylon runtime must be initialized. 
     PylonInitialize();
+
     try
     {
         // Create an instant camera object with the camera device found first.
-        // CInstantCamera camera(CTlFactory::GetInstance().CreateFirstDevice());
+
+       // CInstantCamera camera(CTlFactory::GetInstance().CreateFirstDevice());
+
         CBaslerUniversalInstantCamera camera(CTlFactory::GetInstance().CreateFirstDevice());
+
         // Print the model name of the camera.
         cout << "Using device " << camera.GetDeviceInfo().GetModelName() << endl;
+
         cout << "Device initialized" << endl;
+
         // The parameter MaxNumBuffer can be used to control the count of buffers
         // allocated for grabbing. The default value of this parameter is 10.
+
         camera.MaxNumBuffer = 200;
+
+        cout << "Max buffers set" << endl;
+
         //trial code begins here
+
         /*INodeMap& nodemap = camera.GetNodeMap();
         // Set the upper limit of the camera's frame rate to 30 fps
         CBooleanParameter(nodemap, "AcquisitionFrameRateEnable").SetValue(true);
@@ -126,7 +136,7 @@ int main(int argc, char* argv[])
         }
 
         // Open the SLM preview window (might have an impact on performance):
-        heds_utils_slmpreview_show(true);
+        //heds_utils_slmpreview_show(true);
 
         cout << "All okay till here" << endl;
 
@@ -200,9 +210,24 @@ int main(int argc, char* argv[])
                 // Access the image data.
                 //cout << "SizeX: " << ptrGrabResult->GetWidth() << endl;
                 //cout << "SizeY: " << ptrGrabResult->GetHeight() << endl;
+                int size_x = ptrGrabResult->GetWidth();
+                int size_y = ptrGrabResult->GetHeight();
+
                 const uint8_t* pImageBuffer = (uint8_t*)ptrGrabResult->GetBuffer();
                 //cout << "Gray value of first pixel: " << (uint32_t)pImageBuffer[0] << endl << endl;
                 cout << ptrGrabResult->GetImageSize() << endl;
+
+                float ratio_x = (dataWidth*1.0)/size_x;
+                float ratio_y = (dataHeight*1.0)/size_y;
+
+                for (int y = 0; y < dataHeight; ++y)
+                {
+                    float* row = phaseData->row(y);
+                    for (int x = 0; x < dataWidth; ++x)
+                    {
+                        row[x] = (((uint32_t*)pImageBuffer[((int)(y/ratio_y))*size_y+((int)(x/ratio_x))]/255)>=0.5)?1:0;
+                    }
+                }
 
 #ifdef PYLON_WIN_BUILD
                 // Display the grabbed image.
@@ -217,11 +242,8 @@ int main(int argc, char* argv[])
 
         // You may insert further code here.
 
-        int spatial_end;
-        cin >> spatial_end;
-        slm.close();
-        // Wait until the SLM process was closed
-        error = heds_utils_wait_until_closed();
+    // Wait until the SLM process was closed
+    //error = heds_utils_wait_until_closed();
 
         if (error != HEDSERR_NoError)
         {
@@ -246,7 +268,8 @@ int main(int argc, char* argv[])
     cerr << endl << "Press enter to exit." << endl;
     while (cin.get() != '\n');
 
-    
+
+
     // Releases all pylon resources. 
     PylonTerminate();
 
