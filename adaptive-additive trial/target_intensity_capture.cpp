@@ -17,7 +17,9 @@
     when explicitly released or when the smart pointer object is destroyed.
 */
 
+// Include standard libraries for timestamps and file processing
 #include <ctime>
+#include <fstream>
 
 // Include files to use the pylon API.
 #include <pylon/PylonIncludes.h>
@@ -45,6 +47,10 @@ int main(int argc, char* argv[])
 {
     // The exit code of the sample application.
     int exitCode = 0;
+    
+    // open a file in write mode.
+    ofstream target_data_file;
+    target_data_file.open("target_intensity.txt");
 
     // Before using any pylon methods, the pylon runtime must be initialized. 
     PylonInitialize();
@@ -85,7 +91,8 @@ int main(int argc, char* argv[])
         camera.OffsetX.SetValue(our_offsetx);     // Setting origin of the sensor array from the top left corner
         camera.OffsetY.SetValue(our_offsety);
         cout << "Working with an image frame size of: " << our_width * our_height << " pixels" << endl;
-
+        
+        int data[our_height][our_width];
     
         camera.AcquisitionFrameRateEnable.SetValue(true);
         cout << "frame rate enabled" << endl;
@@ -122,7 +129,15 @@ int main(int argc, char* argv[])
                 // Access the image data.
                 //cout << "SizeX: " << ptrGrabResult->GetWidth() << endl;
                 //cout << "SizeY: " << ptrGrabResult->GetHeight() << endl;
-                //const uint8_t* pImageBuffer = (uint8_t*)ptrGrabResult->GetBuffer();
+                const uint8_t* pImageBuffer = (uint8_t*)ptrGrabResult->GetBuffer();
+                for(int i=0; i < our_height ; i++){
+                 for(int j=0; j < our_width ; j++){
+                     data[i][j] = (uint32_t)pImageBuffer[i*our_width + j];
+                 
+                 }
+                }
+                // write inputted data into the file.
+                target_data_file << data << endl;
                 //cout << "Gray value of first pixel: " << (uint32_t)pImageBuffer[0] << endl << endl;
                 //cout << ptrGrabResult->GetImageSize() << endl;
                 
