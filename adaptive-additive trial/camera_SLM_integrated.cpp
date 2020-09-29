@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <iostream>
+#include <ctime>
+#include <fstream>
+
 #include <holoeye_slmdisplaysdk.hpp>
 #include <holoeye_slmdisplaysdk_cpp.cpp>
 using namespace holoeye;
@@ -60,6 +63,21 @@ int main(int argc, char* argv[])
     int exitCode = 0;
     uint8_t target_intensity[CAMHEIGHT][CAMWIDTH] = 0;
     set_target(target_intensity);
+    
+    // open a file in read mode.
+    ifstream target_intensity_data; 
+    target_intensity_data.open("target_image_data.txt");
+    
+    for(int i=0; i < 1080 ; i++){
+     for(int j=0; j < 1920 ; j++){
+      targer_intensity_data >> target; 
+
+     
+     }
+    
+    }
+ 
+ 
     // Before using any pylon methods, the pylon runtime must be initialized. 
     PylonInitialize();
     try
@@ -74,14 +92,10 @@ int main(int argc, char* argv[])
         // allocated for grabbing. The default value of this parameter is 10.
         camera.MaxNumBuffer = 200;
         //trial code begins here
-        /*INodeMap& nodemap = camera.GetNodeMap();
-        // Set the upper limit of the camera's frame rate to 30 fps
-        CBooleanParameter(nodemap, "AcquisitionFrameRateEnable").SetValue(true);
-        CFloatParameter(nodemap, "AcquisitionFrameRate").SetValue(30.0); */
+        
         camera.Open();
         camera.DeviceLinkThroughputLimitMode.SetValue("Off");
-
-        //camera.GetNodeMap();
+     
         camera.AcquisitionFrameRateEnable.SetValue(true);
         camera.AcquisitionFrameRate.SetValue(170.0);
         double rate = camera.ResultingFrameRate.GetValue();
