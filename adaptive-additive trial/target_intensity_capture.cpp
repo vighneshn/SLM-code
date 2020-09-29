@@ -133,11 +133,13 @@ int main(int argc, char* argv[])
                 for(int i=0; i < our_height ; i++){
                  for(int j=0; j < our_width ; j++){
                      data[i][j] = (uint32_t)pImageBuffer[i*our_width + j];
+                     target_data_file << data[i][j] << " ";
                  
                  }
+                    target_data_file << endl;
                 }
                 // write inputted data into the file.
-                target_data_file << data << endl;
+                //target_data_file << data << endl;
                 //cout << "Gray value of first pixel: " << (uint32_t)pImageBuffer[0] << endl << endl;
                 //cout << ptrGrabResult->GetImageSize() << endl;
                 
