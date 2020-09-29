@@ -64,14 +64,18 @@ int main(int argc, char* argv[])
     uint8_t target_intensity[CAMHEIGHT][CAMWIDTH] = 0;
     set_target(target_intensity);
     
-    // open a file in read mode.
+    // Open a file which has the target intensity data, in read mode.
     ifstream target_intensity_data; 
-    target_intensity_data.open("target_image_data.txt");
+    target_intensity_data.open("target_intensity.txt");
     
-    for(int i=0; i < 1080 ; i++){
-     for(int j=0; j < 1920 ; j++){
-      targer_intensity_data >> target; 
-
+    // Store the target intensity data in an array
+    int target[1080][1920];
+     
+    for(int p=0; p < 1080 ; p++){
+     
+     for(int q=0; q < 1920 ; q++){
+      
+      targer_intensity_data >> target[p][q];
      
      }
     
