@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
         {
             float* row = phaseData->row(y);
             for (int x = 0; x < our_width; ++x)
-                *(phase_no_modif+y*our_width+x) = row[x];
+                phase_no_modif[y][x] = row[x];
         }
       
         float COST = 9999999999;
@@ -243,9 +243,9 @@ int main(int argc, char* argv[])
                 const uint8_t* pImageBuffer = (uint8_t*)ptrGrabResult->GetBuffer();
                 //cout << "Gray value of first pixel: " << (uint32_t)pImageBuffer[0] << endl;
                 if (COST < prev_cost){
-                    for (int x = 0; x < dataWidth; ++x){
+                    for (int y = 0; y < dataHeight; ++y){
                         for (int x = 0; x < dataWidth; ++x)
-                            phase_no_modif[i] = *(phase_modif+y*our_width+i);              
+                            phase_no_modif[y][x] = phase_modif[y][x];              
                     }
                     prev_cost = COST;
                 }
@@ -260,9 +260,10 @@ int main(int argc, char* argv[])
                 for (int y = 0; y < our_height; ++y)
                 {
                     float* row = phaseData->row(y);
-                    flip((phase_no_modif+y*our_width), our_width, cell_size, (phase_modif+y*our_width));
+                    flip(phase_no_modif[y], our_width, cell_size, phase_modif[y]);
                     for (int x = 0; x < dataWidth; ++x)
-                         row[i] = *(phase_modif+y*our_width+i);              
+                         row[i] = phase_modif[y][x];              
+                         //row[i] = *(*(phase_modif+y*our_width)+x);              
                 }
 #ifdef PYLON_WIN_BUILD
                 // Display the grabbed image.
