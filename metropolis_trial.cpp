@@ -70,6 +70,7 @@ using namespace holoeye;
 
 #define _USE_MATH_DEFINES
 #define A 0.5
+#define THRESHOLD 1
 using namespace Basler_UniversalCameraParams;
 
 
@@ -233,6 +234,9 @@ int main(int argc, char* argv[])
 
 
         int img[our_width][our_height];
+        float data = row;
+      
+        COST = 9999999999;
         // Start the grabbing of c_countOfImagesToGrab images.
         // The camera device is parameterized with a default configuration which
         // sets up free-running continuous acquisition.
@@ -244,7 +248,7 @@ int main(int argc, char* argv[])
 
         // Camera.StopGrabbing() is called automatically by the RetrieveResult() method
         // when c_countOfImagesToGrab images have been retrieved.
-        while (camera.IsGrabbing())
+        while (camera.IsGrabbing() && COST > THRESHOLD)
         {
             // Wait for an image and then retrieve it. A timeout of 5000 ms is used.
             camera.RetrieveResult(5000, ptrGrabResult, TimeoutHandling_ThrowException);
@@ -257,13 +261,19 @@ int main(int argc, char* argv[])
                 //cout << "SizeY: " << ptrGrabResult->GetHeight() << endl;
                 const uint8_t* pImageBuffer = (uint8_t*)ptrGrabResult->GetBuffer();
                 //cout << "Gray value of first pixel: " << (uint32_t)pImageBuffer[0] << endl;
-                C = cost((uint32_t)pImageBuffer, target);
+                COST = cost((uint32_t)pImageBuffer, target);
                 for(int M=0; M<our_width; M++){
                     for(int N=0; N<our_height; N++){
                         img[M][N] = (uint32_t)pImageBuffer[our_width*M + N];
                     }
                 }
                 cout << ptrGrabResult->GetImageSize() << endl;
+              data = flip(row, our_width*our_height, cell_size);
+              if (COST < prev_cost){
+                row = data;              
+              } else{
+                row = row;
+              }
                 
 
 #ifdef PYLON_WIN_BUILD
