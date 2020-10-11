@@ -85,37 +85,24 @@ static const uint32_t c_countOfImagesToGrab = 160;
 
 
 // Defining cost function
-float cost(image, target){
+float cost(uint32_t* image, uint32_t* target, int size_img){
     float q=0;
-    for(int p=0; p< sizeof(image); p++){
-       q += (image[i]-target[i])^2; 
+    for(int p=0; p< size_img; p++){
+       q += (image[i]-target[i])*(image[i]-target[i]); 
     }
-    return q/sizeof(image);
-    
+    return q/size_img;
 };
 
 // Defining flip function for Monte-Carlo method
 
-float flip(DATA, NUMBER, D){
+void flip(float* DATA, int NUMBER, int D, float* temp){
     int t;
     int random[D];
     t = srand(time(NULL));
     for (int m=0; m<D; m++){
         random[m] = rand()%NUMBER;
-        DATA[random[m]] = (DATA[random[m]]+M_PI)%M_PI;
+        temp[random[m]] = (M_PI-DATA[random[m]]);
     }
-    
-    
-    //for (int n=0; n<NUMBER; n++){
-        //t = srand(time(NULL));
-        //if (t%2 == 0){
-            //DATA[n] = (DATA[n]+M_PI)%M_PI;
-        //} else{
-            //DATA[n]=DATA[n];
-        //}
-    //}
-    return DATA;
-    
 }
 
 int main(int argc, char* argv[])
@@ -176,25 +163,20 @@ int main(int argc, char* argv[])
         if (error != heds_errorcodes::HEDSERR_NoError)
         {
             std::cerr << "ERROR: " << heds_error_string_ascii(error) << std::endl;
-
             return error;
         }
 
         // Open the SLM preview window (might have an impact on performance):
         heds_utils_slmpreview_show(true);
-
         cout << "All okay till here" << endl;
 
-
         //trial code ends here
-
-         // Configure the lens properties:
+        // Configure the lens properties:
         const int innerRadius = heds_slm_height_px() / 3;
         const int centerX = 0;
         const int centerY = 0;
 
         // Calculate the phase values of a lens in a pixel-wise matrix:
-
         // pre-calc. helper variables:
         const float phaseModulation = 2.0f * HOLOEYE_PIF;
         const int dataWidth = heds_slm_width_px();
@@ -209,50 +191,49 @@ int main(int argc, char* argv[])
         for (int y = 0; y < dataHeight; ++y)
         {
             float* row = phaseData->row(y);
-
             int val_y = y - dataHeight / 2 + centerY;
-
             for (int x = 0; x < dataWidth; ++x)
             {
                 int val_x = x - dataWidth / 2 - centerX;
-
                 int r2 = val_x * val_x + val_y * val_y;
-
                 row[x] = phaseModulation * (float)r2 / innerRadius2;
             }
         }
 
         // Show phase data on SLM:
         error = heds_show_phasevalues(phaseData, HEDSSHF_PresentAutomatic, phaseModulation);
-
         if (error != HEDSERR_NoError)
         {
             std::cerr << "ERROR: " << heds_error_string_ascii(error) << std::endl;
-
             return error;
         }
 
-
         int img[our_width][our_height];
+        int phase_modif[our_width][our_height];
+        int phase_no_modif[our_width][our_height];
         float data = row;
+        for (int y = 0; y < our_height; ++y)
+        {
+            float* row = phaseData->row(y);
+            for (int x = 0; x < our_width; ++x)
+                *(phase_no_modif+y*our_width+x) = row[x];
+        }
       
-        COST = 9999999999;
+        float COST = 9999999999;
+        float prev_cost = 9999999999;
         // Start the grabbing of c_countOfImagesToGrab images.
         // The camera device is parameterized with a default configuration which
         // sets up free-running continuous acquisition.
         camera.StartGrabbing(c_countOfImagesToGrab);
-
         CBaslerUniversalGrabResultPtr ptrGrabResult;
         // This smart pointer will receive the grab result data.
-       // CGrabResultPtr ptrGrabResult;
-
+        // CGrabResultPtr ptrGrabResult;
         // Camera.StopGrabbing() is called automatically by the RetrieveResult() method
         // when c_countOfImagesToGrab images have been retrieved.
         while (camera.IsGrabbing() && COST > THRESHOLD)
         {
             // Wait for an image and then retrieve it. A timeout of 5000 ms is used.
             camera.RetrieveResult(5000, ptrGrabResult, TimeoutHandling_ThrowException);
-
             // Image grabbed successfully?
             if (ptrGrabResult->GrabSucceeded())
             {
@@ -261,21 +242,28 @@ int main(int argc, char* argv[])
                 //cout << "SizeY: " << ptrGrabResult->GetHeight() << endl;
                 const uint8_t* pImageBuffer = (uint8_t*)ptrGrabResult->GetBuffer();
                 //cout << "Gray value of first pixel: " << (uint32_t)pImageBuffer[0] << endl;
-                COST = cost((uint32_t)pImageBuffer, target);
+                if (COST < prev_cost){
+                    for (int x = 0; x < dataWidth; ++x){
+                        for (int x = 0; x < dataWidth; ++x)
+                            phase_no_modif[i] = *(phase_modif+y*our_width+i);              
+                    }
+                    prev_cost = COST;
+                }
+                //COST = cost((uint32_t)pImageBuffer, target, our_width*our_height);
                 for(int M=0; M<our_width; M++){
                     for(int N=0; N<our_height; N++){
                         img[M][N] = (uint32_t)pImageBuffer[our_width*M + N];
                     }
                 }
+                COST = cost(img, target, our_width*our_height);
                 cout << ptrGrabResult->GetImageSize() << endl;
-              data = flip(row, our_width*our_height, cell_size);
-              if (COST < prev_cost){
-                row = data;              
-              } else{
-                row = row;
-              }
-                
-
+                for (int y = 0; y < our_height; ++y)
+                {
+                    float* row = phaseData->row(y);
+                    flip((phase_no_modif+y*our_width), our_width, cell_size, (phase_modif+y*our_width));
+                    for (int x = 0; x < dataWidth; ++x)
+                         row[i] = *(phase_modif+y*our_width+i);              
+                }
 #ifdef PYLON_WIN_BUILD
                 // Display the grabbed image.
                 Pylon::DisplayImage(1, ptrGrabResult);
@@ -285,13 +273,11 @@ int main(int argc, char* argv[])
             {
                 cout << "Error: " << ptrGrabResult->GetErrorCode() << " " << ptrGrabResult->GetErrorDescription() << endl;
             }
-            
             error = heds_show_phasevalues(phaseData, HEDSSHF_PresentAutomatic, phaseModulation);
         }
 
         // You may insert further code here.
         // Closing down system after taking keyboard input
-
         int spatial_end;
         cin >> spatial_end;
         slm.close();
@@ -301,12 +287,9 @@ int main(int argc, char* argv[])
         if (error != HEDSERR_NoError)
         {
             std::cerr << "ERROR: " << heds_error_string_ascii(error) << std::endl;
-
             return error;
         }
-
         std::cout << "No errors until the end";
-
         camera.Close();
     }
     catch (const GenericException& e)
@@ -316,18 +299,14 @@ int main(int argc, char* argv[])
             << e.GetDescription() << endl;
         exitCode = 1;
     }
-
     // Comment the following two lines to disable waiting on exit.
     cerr << endl << "Press enter to exit." << endl;
     while (cin.get() != '\n');
-
     
     // Releases all pylon resources. 
     PylonTerminate();
-
     return exitCode;
 }
-
 /* Vikram's Notes:
    1) Seems like no errors are thrown up if number of images to grab equals number of buffers allocated
    2) Camera image seems to comprise 2048x1088 = 2228224 pixels of data
