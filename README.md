@@ -8,3 +8,6 @@ Doc on SLM performance: https://docs.google.com/document/d/1xuCia5ubPeh_O9gQ_3ag
 
 Colab notebook
 3/10/20 - https://colab.research.google.com/drive/1lEDqned2bsXEOSMSaMq7fe2Nl8rB0whL
+
+Ongoing report on experiments and simulations
+https://www.overleaf.com/project/5f7aa4f2ebfaed000192815f
