@@ -3,6 +3,8 @@
 
 # In[70]:
 
+####### THIS PROGRAMME TAKES 3 ARGUMENTS FROM THE COMMAND LINE - DATE, MONTH 
+# AND SQUARE SIDE LENGTH (FOR THE GRATINGS) - IN THAT ORDER #######
 
 # IMPORTING PACKAGES REQUIRED TO RUN THE EXPERIMENT
 
@@ -76,7 +78,7 @@ assert error == ErrorCode.NoError, slm.errorString(error)
 # Please adapt the file showSLMPreview.py if preview window
 # is not at the right position or even not visible.
 from showSLMPreview import showSLMPreview
-showSLMPreview(slm, scale=0.0)
+#showSLMPreview(slm, scale=0.0)
 
 
 # Reserve memory for the data:
@@ -88,13 +90,14 @@ size = [sidelength, sidelength]
 data_init = slmdisplaysdk.createFieldUChar(size[1],size[0])
 #data = slmdisplaysdk.createFieldUChar(512,512)
 size = data_init.shape
-print("shape is: ", data_init.shape)
-print("dataWidth = " + str(dataWidth))
-print("dataHeight = " + str(dataHeight))
+print("\nShape of the grating to capture the target image is: ", data_init.shape)
+print("dataWidth = " + str((data_init.shape)[1]))
+print("dataHeight = " + str((data_init.shape)[0]))
 
 # Calculate the data:
 #data = 2*np.pi*np.random.rand(dataHeight, dataWidth)
 data_init = 2*np.pi*grating(data_init.shape)/256
+print("Phase values to be shown are: ")
 print(data_init)
 error = slm.showPhasevalues(data_init)
 
@@ -116,23 +119,23 @@ while camera.IsGrabbing():
         # Access the image data.
         img = np.asarray(grabResult.Array) #.reshape((grabResult.Height, grabResult.Width))
         
-        print(img.shape)
+        print("Shape of the target image is: ", img.shape)
 
         
 
     grabResult.Release()
     
-print(img.shape)
+
 plt.imshow(img, cmap='gray', vmin=0, vmax=255)
-#plt.show()    
+plt.show(block=False)    
 camera.Close()
 
 
 np.save(main_dir + "/target"+ str(size[0]) + '_' + datemonth, img)
 img = np.load(main_dir + "/target"+ str(size[0]) + '_' + datemonth + '.npy')
 plt.imshow(img, cmap='gray', vmin=0, vmax=255)
-print(img.shape)
-#plt.show()
+print("Shape of the saved target image is: ", img.shape)
+plt.show(block=False)
 
 # If your IDE terminates the python interpreter process after the script is finished, the SLM content
 # will be lost as soon as the script finishes.
@@ -186,7 +189,8 @@ sizerand = (dataHeight,dataWidth)
 # Initialize random binary bitmap, and show it on the SLM:
 #data = 2*np.pi*np.random.rand(dataHeight, dataWidth)
 data = np.pi*(np.sign(np.random.normal(0,1,sizerand)+1e-7) + 1)/2
-#print(data)
+print("Random phasevalues shown on the SLM are: ")
+print(data)
 error = slm.showPhasevalues(data)
 
 # DEFINING COST FUNCTION
@@ -195,11 +199,11 @@ def cost(I_target, I_camera):
 
 # Set this appropriately, can load the .npy file into this
 TargetIntensity = np.load(main_dir + '/target' + str(size[0]) + '_' + datemonth + '.npy')
-print(TargetIntensity.shape)
-plt.imshow(TargetIntensity, cmap='gray', vmin=0, vmax=255)
-plt.title("Target Image captured by camera")
-plt.savefig(main_dir + "/target" + str(size[0]) + '_' + datemonth + ".png")
-#plt.show()
+print("Shape of the target intensity distribution to use in the cost function is: ", TargetIntensity.shape)
+figtarget = plt.imshow(TargetIntensity, cmap='gray', vmin=0, vmax=255)
+figtarget.title("Target Image captured by camera")
+figtarget.savefig(main_dir + "/target" + str(size[0]) + '_' + datemonth + ".png")
+plt.show(block=False)
 
 numberOfImagesToGrab = 30
 
@@ -210,7 +214,7 @@ TIME = []
 E = []
 time_start = time.time()
 
-# Reserve memory for grating to be shown, then show grating
+# Reserve memory for grating to be shown, then create grating
 data2 = slmdisplaysdk.createFieldUChar(size[0],size[1])
 data2 = np.pi*grating(size)/128
 time_start = time.time()
@@ -227,12 +231,10 @@ while camera.IsGrabbing():
         print("Error: ", grabResult.ErrorCode, grabResult.ErrorDescription)
     grabResult.Release()
     count += 1
-    #cv2.imwrite('with_phase_06_10/with_phase'+ str(iter) + '.png', img[-1])
-    
-    
+        
 time_end = time.time()
-print(data2.shape)
-print("TIME: ", time_end-time_start)
+print("Shape of grating shown is: ", data2.shape)
+print("Time taken to grab images: ", time_end-time_start)
 
 # WRITING FRAMES CAPTURED BY CAMERA INTO A VIDEO
 fps = 1
@@ -240,6 +242,7 @@ sizevid = (img[1]).shape
 pathOut = main_dir + '/response' + str(size[0]) + datemonth + '.avi'
 out = cv2.VideoWriter(pathOut,cv2.VideoWriter_fourcc(*'DIVX'), fps, sizevid)
 
+# PROCESSING DATA INTO ARRAYS THAT WILL BE PLOTTED
 for i in range(30):
    COST.append(cost(TargetIntensity, img[i]))
    E.append(np.sum(img[i]))
@@ -248,10 +251,6 @@ for i in range(30):
    out.write(gray_3c)
    
 out.release()
-#plt.plot(TIME, E)
-#plt.show()
-#plt.plot(TIME, COST)
-#plt.show()
 
 print("COST = ", COST)
 print("Energy = ", E)
@@ -279,7 +278,7 @@ ax[1].set_xlabel("Time in milliseconds", fontsize=15)
 ax[1].set_ylabel("Energy", fontsize=15)
 
 plt.savefig(main_dir + "/response" + str(size[0]) + "_" + datemonth + ".png")
-#plt.show()
+plt.show(block=False)
 
 plt.imshow(data2, cmap='gray')
 plt.xlabel("Column number")
@@ -287,7 +286,7 @@ plt.ylabel("Row number")
 plt.title("Grating shown on SLM")
 plt.colorbar()
 plt.savefig(main_dir + "/grating" + str(size[0]) + "_" + datemonth + ".png")
-
+plt.show(block=False)
 
 # CLOSING DOWN THE INSTRUMENTS
 
@@ -303,3 +302,5 @@ assert error == ErrorCode.NoError, slm.errorString(error)
 # Unloading the SDK may or may not be required depending on your IDE:
 slm = None
 
+# SHOWING ALL THE PLOTS GENERATED
+plt.show()
