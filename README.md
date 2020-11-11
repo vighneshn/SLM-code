@@ -11,3 +11,6 @@ Colab notebook
 
 Ongoing report on experiments and simulations
 https://www.overleaf.com/project/5f7aa4f2ebfaed000192815f
+
+Drive with results
+https://drive.google.com/drive/folders/1CUX6TxZUfOe4rzHzMtI5TT3dkmAnxoE3?usp=sharing
