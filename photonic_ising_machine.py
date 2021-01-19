@@ -200,6 +200,13 @@ class MainWindow(QtWidgets.QMainWindow):
         #self.buttonwidget3.clicked.connect(threading.Thread(target=self.on_button_clicked3).start)
         self.layout.addWidget(self.buttonwidget8, 2,3)
 
+        
+        number_shape, done = QtWidgets.QInputDialog.getInt(self, 'Input Dialog', 'Enter side of 2d grid of numbers to be partitioned:')
+        numbers = np.random.uniform(0, 1, (numbers_shape,numbers_shape))
+        numbers = (numbers*1000).astype(int)
+        print(numbers)
+        np.savetxt("numbers.csv", numbers, delimiter=',')
+
 
         widget.setLayout(self.layout)
         self.setCentralWidget(widget)
