@@ -194,11 +194,6 @@ class MainWindow(QtWidgets.QMainWindow):
         #self.buttonwidget3.clicked.connect(threading.Thread(target=self.on_button_clicked3).start)
         self.layout.addWidget(self.buttonwidget7, 2,2)
         
-        self.buttonwidget8 = QtWidgets.QPushButton("Set d value")
-        self.buttonwidget8.clicked.connect(self.on_button_clicked8)
-        self.buttonwidget8.resize(100,40)
-        #self.buttonwidget3.clicked.connect(threading.Thread(target=self.on_button_clicked3).start)
-        self.layout.addWidget(self.buttonwidget8, 2,3)
 
 
         widget.setLayout(self.layout)
@@ -462,12 +457,6 @@ class MainWindow(QtWidgets.QMainWindow):
         error = self.slm.showPhasevalues(x+mask)
         print("Random distribution shown on SLM")
         return filepath
-
-    def on_button_clicked8(self):
-        global d
-        x, done = QtWidgets.QInputDialog.getInt(self, 'Input Dialog', 'Enter value for d:')
-        d = x
-        print("New value of d = ", d)
 
     def on_button_clicked3(self):
         print("Closing Window")
